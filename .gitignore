@@ -1,0 +1,13 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/APIAutomationTestingServices/.vs/APIAutomationTestingServices
+/APIAutomationTestingServices/APIAutomationTestingServices/obj
+/APIAutomationTestingServices/APIAutomationTestingServices/bin/Debug/net6.0
+/APIAutomationTestingServices/APITestingService/bin/Debug/net6.0
+/APIAutomationTestingServices/APITestingService/obj
+/APIAutomationTestingServices/ModelsLibrary/bin/Debug/net6.0
+/APIAutomationTestingServices/ModelsLibrary/obj
+/APIAutomationTestingServices/.vs/ProjectEvaluation
