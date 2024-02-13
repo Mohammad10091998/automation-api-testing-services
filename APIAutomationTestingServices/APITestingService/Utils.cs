@@ -1,31 +1,34 @@
 ﻿using System.Collections;
 using System.Dynamic;
 using System.Linq.Dynamic.Core;
+using System.Security;
+using System.Text.Json.Nodes;
 using ModelsLibrary;
 
 public static class Utils
 {
-    public static int count;
-    public static int currentCount;
-    public async static Task<List<dynamic>> GetTypedObject(dynamic input)
+    //This is the currentIndex during recurrssion of creating different test objects
+    public static int currentIndex;
+    public static async Task<List<dynamic>> CreateTestObjectsFromExpando(dynamic input)
     {
         try
         {
             if (input is ExpandoObject)
             {
-                LinkedList<Node> listOfProperties = new LinkedList<Node>();
-                Type type = CreateAbstractClassType(input, listOfProperties);
-                var obj = CreateObject(type, input);
-
-                var testObjests = GenerateTestObjects(listOfProperties, type, input);
-                return testObjests;
+                LinkedList<Node> propertyNodes = new LinkedList<Node>();
+                Type objectType = CreateAbstractClassType(input, propertyNodes);
+                //All positive value typed object
+                var typedObject = CreateDifferentTestObject(objectType, input, null, null, -1); 
+                var testObjects = GenerateUniqueTestObjects(propertyNodes, objectType, input);
+                testObjects.Add(typedObject);
+                return testObjects;
             }
-            throw new Exception("Invalid Data");
-        }
-        catch (Exception)
-        {
 
-            throw new InvalidDataException("Invalid Data");
+            throw new Exception("Invalid Data: Input is not of ExpandoObject type");
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
         }
     }
     public static Type CreateAbstractClassType(dynamic input, LinkedList<Node> list)
@@ -70,72 +73,52 @@ public static class Utils
         return type;
     }
 
-    private static void AddNodeInTheList(string key, Type value, LinkedList<Node> list)
-    {
-        string typeName = value.Name;
-        if (typeName == "Int64")
-        {
-            Node node = new Node(key, typeName);
-            list.AddLast(node);
-        }
-        else if (typeName == "String")
-        {
-            Node node = new Node(key, typeName);
-            list.AddLast(node);
-        }
-        else if (typeName == "DateTime")
-        {
-            Node node = new Node(key, typeName);
-            list.AddLast(node);
-        }
-    }
+    //public static object CreateTypedObject(Type type, dynamic input)
+    //{
+    //    if (!(input is ExpandoObject))
+    //    {
+    //        return Convert.ChangeType(input, type);
+    //    }
+    //    object obj = Activator.CreateInstance(type);
 
-    public static object CreateObject(Type type, dynamic input)
-    {
-        if (!(input is ExpandoObject))
-        {
-            return Convert.ChangeType(input, type);
-        }
-        object obj = Activator.CreateInstance(type);
+    //    var typeProps = type.GetProperties().ToDictionary(c => c.Name);
 
-        var typeProps = type.GetProperties().ToDictionary(c => c.Name);
+    //    foreach (var expando in (IDictionary<string, object>)input)
+    //    {
+    //        if (typeProps.ContainsKey(expando.Key) &&
+    //            expando.Value != null && (expando.Value.GetType().Name != "DBNull" || expando.Value != DBNull.Value))
+    //        {
+    //            object val;
+    //            var propInfo = typeProps[expando.Key];
+    //            if (expando.Value is ExpandoObject)
+    //            {
+    //                var propType = propInfo.PropertyType;
+    //                val = CreateTypedObject(propType, expando.Value);
+    //            }
+    //            else if (expando.Value is IList)
+    //            {
+    //                var internalType = propInfo.PropertyType.GenericTypeArguments.FirstOrDefault() ?? typeof(object);
+    //                var temp = (IList)expando.Value;
+    //                var newList = new List<object>().Cast(internalType).ToList(internalType);
+    //                for (int i = 0; i < temp.Count; i++)
+    //                {
+    //                    var child = CreateTypedObject(internalType, temp[i]);
+    //                    newList.Add(child);
+    //                };
+    //                val = newList;
+    //            }
+    //            else
+    //            {
+    //                val = expando.Value;
+    //            }
+    //            propInfo.SetValue(obj, val, null);
+    //        }
+    //    }
 
-        foreach (var expando in (IDictionary<string, object>)input)
-        {
-            if (typeProps.ContainsKey(expando.Key) &&
-                expando.Value != null && (expando.Value.GetType().Name != "DBNull" || expando.Value != DBNull.Value))
-            {
-                object val;
-                var propInfo = typeProps[expando.Key];
-                if (expando.Value is ExpandoObject)
-                {
-                    var propType = propInfo.PropertyType;
-                    val = CreateObject(propType, expando.Value);
-                }
-                else if (expando.Value is IList)
-                {
-                    var internalType = propInfo.PropertyType.GenericTypeArguments.FirstOrDefault() ?? typeof(object);
-                    var temp = (IList)expando.Value;
-                    var newList = new List<object>().Cast(internalType).ToList(internalType);
-                    for (int i = 0; i < temp.Count; i++)
-                    {
-                        var child = CreateObject(internalType, temp[i]);
-                        newList.Add(child);
-                    };
-                    val = newList;
-                }
-                else
-                {
-                    val = expando.Value;
-                }
-                propInfo.SetValue(obj, val, null);
-            }
-        }
+    //    return obj;
+    //}
 
-        return obj;
-    }
-
-    public static object CreateDiffrentTestObject(Type type, dynamic input, string updatingKey, object updatingValue)
+    public static object CreateDifferentTestObject(Type type, dynamic input, string updatingKey, object updatingValue, int propertyIndex)
     {
         if (!(input is ExpandoObject))
         {
@@ -155,7 +138,7 @@ public static class Utils
                 if (expando.Value is ExpandoObject)
                 {
                     var propType = propInfo.PropertyType;
-                    val = CreateDiffrentTestObject(propType, expando.Value, updatingKey, updatingValue);
+                    val = CreateDifferentTestObject(propType, expando.Value, updatingKey, updatingValue, propertyIndex);
                 }
                 else if (expando.Value is IList)
                 {
@@ -164,7 +147,7 @@ public static class Utils
                     var newList = new List<object>().Cast(internalType).ToList(internalType);
                     for (int i = 0; i < temp.Count; i++)
                     {
-                        var child = CreateDiffrentTestObject(internalType, temp[i], updatingKey, updatingValue);
+                        var child = CreateDifferentTestObject(internalType, temp[i], updatingKey, updatingValue, propertyIndex);
                         newList.Add(child);
                     };
                     val = newList;
@@ -174,12 +157,12 @@ public static class Utils
                     val = expando.Value;
                     if (expando.Key == updatingKey)
                     {
-                        if (count == currentCount)
+                        if (propertyIndex == currentIndex)
                         {
                             val = updatingValue;
                         }
 
-                        currentCount++;
+                        currentIndex++;
 
                     }
                 }
@@ -203,38 +186,58 @@ public static class Utils
         var genericMethod = methodInfo.MakeGenericMethod(innerType);
         return genericMethod.Invoke(null, new[] { self }) as IList;
     }
-    public static List<dynamic> GenerateTestObjects(LinkedList<Node> listOfProperties, Type type, dynamic input)
+    private static void AddNodeInTheList(string key, Type value, LinkedList<Node> list)
     {
-        List<dynamic> listOfTestObject = new List<dynamic>();
+        string typeName = value.Name;
+        if (typeName == "Int64")
+        {
+            Node node = new Node(key, typeName);
+            list.AddLast(node);
+        }
+        else if (typeName == "String")
+        {
+            Node node = new Node(key, typeName);
+            list.AddLast(node);
+        }
+        else if (typeName == "DateTime")
+        {
+            Node node = new Node(key, typeName);
+            list.AddLast(node);
+        }
+    }
+    public static List<dynamic> GenerateUniqueTestObjects(LinkedList<Node> propertyNodes, Type objectType, dynamic input)
+    {
+        List<dynamic> uniqueTestObjects = new List<dynamic>();
 
-        List<int> ints = new List<int>() { -9, 9, 99 };
+        List<int> integerValues = new List<int>() { -9, 9, 99 };
 
         Dictionary<string, int> keyCountMap = new Dictionary<string, int>();
-
-        foreach (var item in listOfProperties)
+       
+        foreach (var propertyNode in propertyNodes)
         {
-            if (keyCountMap.ContainsKey(item.Key))
+            if (keyCountMap.TryGetValue(propertyNode.Key, out int propertyIndex))
             {
-                count = keyCountMap[item.Key] + 1;
-                keyCountMap[item.Key] = count;
+                propertyIndex++;
+                keyCountMap[propertyNode.Key] = propertyIndex;
             }
             else
             {
-                keyCountMap.Add(item.Key, 0);
-                count = 0;
+                keyCountMap.Add(propertyNode.Key, 0);
+                propertyIndex = 0;
             }
 
-            if (item.PropertyType == "Int64")
+            if (propertyNode.PropertyType == "Int64")
             {
-                foreach (var v in ints)
+                foreach (var integerValue in integerValues)
                 {
-                    currentCount = 0;
-                    var testObject = CreateDiffrentTestObject(type, input, item.Key, v);
-                    listOfTestObject.Add(testObject);
+                    currentIndex = 0;
+                    var testObject = CreateDifferentTestObject(objectType, input, propertyNode.Key, integerValue, propertyIndex);
+                    uniqueTestObjects.Add(testObject);
                 }
             }
         }
 
-        return listOfTestObject;
+        return uniqueTestObjects;
     }
+
 }
