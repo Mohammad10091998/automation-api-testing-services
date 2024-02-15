@@ -12,6 +12,7 @@ namespace APIAutomationTestingServices
         public static void RegisterService(this IServiceCollection collection)
         {
             collection.AddScoped<IAPITestingServices, APITestingServices>();
+            collection.AddScoped<IHttpApiService, HttpApiService>();
         }
     }
 }

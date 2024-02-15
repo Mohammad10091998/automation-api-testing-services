@@ -4,12 +4,13 @@ using System.Linq.Dynamic.Core;
 using System.Security;
 using System.Text.Json.Nodes;
 using ModelsLibrary;
+using Newtonsoft.Json.Linq;
 
 public static class Utils
 {
     //This is the currentIndex during recurrssion of creating different test objects
     public static int currentIndex;
-    public static async Task<List<dynamic>> CreateTestObjectsFromExpando(dynamic input)
+    public static async Task<List<TestPayloadInfo>> CreateTestObjectsFromExpando(dynamic input)
     {
         try
         {
@@ -18,9 +19,15 @@ public static class Utils
                 LinkedList<Node> propertyNodes = new LinkedList<Node>();
                 Type objectType = CreateAbstractClassType(input, propertyNodes);
                 //All positive value typed object
-                var typedObject = CreateDifferentTestObject(objectType, input, null, null, -1); 
-                var testObjects = GenerateUniqueTestObjects(propertyNodes, objectType, input);
-                testObjects.Add(typedObject);
+                var typedObject = CreateDifferentTestObject(objectType, input, null, null, -1);
+                List<TestPayloadInfo> testObjects = GenerateUniqueTestObjects(propertyNodes, objectType, input);
+
+                //Adding positive scenario given by user
+                TestPayloadInfo posTestPayloadInfo = new TestPayloadInfo
+                {
+                    TestObject = typedObject,
+                };
+                testObjects.Add(posTestPayloadInfo);
                 return testObjects;
             }
 
@@ -205,11 +212,12 @@ public static class Utils
             list.AddLast(node);
         }
     }
-    public static List<dynamic> GenerateUniqueTestObjects(LinkedList<Node> propertyNodes, Type objectType, dynamic input)
+    public static List<TestPayloadInfo> GenerateUniqueTestObjects(LinkedList<Node> propertyNodes, Type objectType, dynamic input)
     {
-        List<dynamic> uniqueTestObjects = new List<dynamic>();
+        List<TestPayloadInfo> uniqueTestObjects = new List<TestPayloadInfo>();
 
-        List<int> integerValues = new List<int>() { -9, 9, 99 };
+        List<int> integerValues = new List<int>() { int.MinValue, 0, int.MaxValue };
+        List<string> stringValues = new List<string>() { null, "", "abc123", "!@#$%","abc_xyx","abc.xyz" };
 
         Dictionary<string, int> keyCountMap = new Dictionary<string, int>();
        
@@ -229,10 +237,33 @@ public static class Utils
             if (propertyNode.PropertyType == "Int64")
             {
                 foreach (var integerValue in integerValues)
-                {
+                {                                                                                                   
                     currentIndex = 0;
                     var testObject = CreateDifferentTestObject(objectType, input, propertyNode.Key, integerValue, propertyIndex);
-                    uniqueTestObjects.Add(testObject);
+                    TestPayloadInfo testPayloadInfo = new TestPayloadInfo
+                    {
+                        TestObject = testObject,
+                        NegativePropertyName = propertyNode.Key,
+                        NegativePropertyValue = integerValue.ToString(),
+                        NegativePropertyType = propertyNode.PropertyType
+                    };
+                    uniqueTestObjects.Add(testPayloadInfo);
+                }
+            }
+            if (propertyNode.PropertyType == "String")
+            {
+                foreach (var value in stringValues)
+                {
+                    currentIndex = 0;
+                    var testObject = CreateDifferentTestObject(objectType, input, propertyNode.Key, value, propertyIndex);
+                    TestPayloadInfo testPayloadInfo = new TestPayloadInfo
+                    {
+                        TestObject = testObject,
+                        NegativePropertyName = propertyNode.Key,
+                        NegativePropertyValue = value,
+                        NegativePropertyType = propertyNode.PropertyType
+                    };
+                    uniqueTestObjects.Add(testPayloadInfo);
                 }
             }
         }
