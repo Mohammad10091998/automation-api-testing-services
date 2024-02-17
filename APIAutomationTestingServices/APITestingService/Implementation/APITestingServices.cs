@@ -50,7 +50,7 @@ namespace APITestingService.Implementation
             var converter = new ExpandoObjectConverter();
             dynamic jsonObject = JsonConvert.DeserializeObject<ExpandoObject>(testingModel.JsonSchema, converter);
 
-            List<TestPayloadInfo> listOfTestPayloadInfo = await Utils.CreateTestObjectsFromExpando(jsonObject);
+            List<TestPayloadInfo> listOfTestPayloadInfo = await GenerateTestObjectHelper.CreateTestObjectsFromExpando(jsonObject);
 
             //List<string> jsonResults = new List<string>();
 

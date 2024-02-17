@@ -78,7 +78,7 @@ namespace APITestingService.Implementation
             {
                 foreach (var header in testingModel.HeaderKeyValues)
                 {
-                    httpRequestMessage.Headers.Add("Authorization", header.Value);
+                    httpRequestMessage.Headers.Add(header.Key, header.Value);
                 }
             }
             return httpRequestMessage;

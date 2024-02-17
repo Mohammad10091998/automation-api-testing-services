@@ -17,7 +17,7 @@ namespace APIAutomationTestingServices.Controllers
             _logger = logger;
         }
 
-        [HttpGet]
+        [HttpPost]
         public async Task<ActionResult<APITestingResponse>> GetAPITestResults(APITestingModel testModel)
         {
             try

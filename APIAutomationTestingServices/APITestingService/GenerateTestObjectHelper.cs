@@ -6,7 +6,7 @@ using System.Text.Json.Nodes;
 using ModelsLibrary;
 using Newtonsoft.Json.Linq;
 
-public static class Utils
+public static class GenerateTestObjectHelper
 {
     //This is the currentIndex during recurrssion of creating different test objects
     public static int currentIndex;
@@ -217,7 +217,7 @@ public static class Utils
         List<TestPayloadInfo> uniqueTestObjects = new List<TestPayloadInfo>();
 
         List<int> integerValues = new List<int>() { int.MinValue, 0, int.MaxValue };
-        List<string> stringValues = new List<string>() { null, "", "abc123", "!@#$%","abc_xyx","abc.xyz" };
+        List<string> stringValues = new List<string>() { null, "", "abc123", "!@#$%","abc_xyx","abc.xyz", "abc xyz" };
 
         Dictionary<string, int> keyCountMap = new Dictionary<string, int>();
        
