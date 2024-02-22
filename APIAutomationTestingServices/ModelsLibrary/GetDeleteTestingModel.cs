@@ -1,14 +1,15 @@
 ﻿namespace ModelsLibrary
 {
-    public class APITestingModel
+    public class GetDeleteTestingModel
     {
         public string APIUrl { get; set; }
         public string MethodType { get; set; }
-        public string JsonSchema { get; set; }
         public List<KeyValue> Headers { get; set; }
-        public APITestingModel()
+        public List<KeyValue> Params { get; set; }
+        public GetDeleteTestingModel()
         {
             Headers = new List<KeyValue>();
+            Params = new List<KeyValue>();
         }
     }
 }

@@ -9,6 +9,7 @@ namespace APITestingService.Interface
         /// </summary>
         /// <param name="testingModel"></param>
         /// <returns>A task that represents the async operation</returns>
-        Task<APITestingResponse> TestAPI(APITestingModel testingModel);
+        Task<APITestingResponse> TestPostPutAPI(APITestingModel testingModel);
+        Task<APITestingResponse> TestGetDelAPI(GetDeleteTestingModel testingModel);
     }
 }
