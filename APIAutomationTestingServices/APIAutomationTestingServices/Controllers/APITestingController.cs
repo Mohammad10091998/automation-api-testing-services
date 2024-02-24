@@ -18,7 +18,7 @@ namespace APIAutomationTestingServices.Controllers
         }
 
         [HttpPost("TestPostPut")]
-        public async Task<ActionResult<APITestingResponse>> TestPostPutAPITestResults(APITestingModel testModel)
+        public async Task<ActionResult<APITestingResponse>> TestPostPutAPITestResults(PostPutAPITestingModel testModel)
         {
             try
             {
@@ -30,6 +30,22 @@ namespace APIAutomationTestingServices.Controllers
             catch (Exception e)
             {
                 _logger.LogInformation("APITestingController.GetAPITestResults - Failed to get Test Results.");
+                return BadRequest(e.Message);
+            }
+        }
+        [HttpPost("CustomTestPostPut")]
+        public async Task<ActionResult<APITestingResponse>> CustomTestPostPutAPITestResults(CustomPostPutTestingModel testModel)
+        {
+            try
+            {
+                _logger.LogInformation("APITestingController.CustomTestPostPutAPITestResults - Starting to get Test Results.");
+                var response = await _apiTestingServices.CustomTestPostPutAPI(testModel);
+                _logger.LogInformation("APITestingController.CustomTestPostPutAPITestResults - Completed.");
+                return response;
+            }
+            catch (Exception e)
+            {
+                _logger.LogInformation("APITestingController.CustomTestPostPutAPITestResults - Failed to get Test Results.");
                 return BadRequest(e.Message);
             }
         }
@@ -46,6 +62,22 @@ namespace APIAutomationTestingServices.Controllers
             catch (Exception e)
             {
                 _logger.LogInformation("APITestingController.TestGetDelAPITestResults - Failed to get Test Results.");
+                return BadRequest(e.Message);
+            }
+        }
+        [HttpPost("CustomTestGetDel")]
+        public async Task<ActionResult<APITestingResponse>> CustomTestGetDelAPITestResults(CustomGetDelTestModel testModel)
+        {
+            try
+            {
+                _logger.LogInformation("APITestingController.CustomTestGetDelAPITestResults - Starting to get Test Results.");
+                var response = await _apiTestingServices.CustomTestGetDelAPI(testModel);
+                _logger.LogInformation("APITestingController.CustomTestGetDelAPITestResults - Completed.");
+                return response;
+            }
+            catch (Exception e)
+            {
+                _logger.LogInformation("APITestingController.CustomTestGetDelAPITestResults - Failed to get Test Results.");
                 return BadRequest(e.Message);
             }
         }

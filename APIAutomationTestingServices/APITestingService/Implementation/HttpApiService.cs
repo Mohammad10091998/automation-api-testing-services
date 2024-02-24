@@ -16,13 +16,13 @@ namespace APITestingService.Implementation
             _client = httpClientFactory.CreateClient();
             _logger = logger;
         }
-        public async Task<TestobjectInfo> TestPostPutApiWithHttpClient(TestPayloadInfo info, APITestingModel model)
+        public async Task<TestobjectInfo> TestPostPutApiWithHttpClient(TestPayloadInfo info, PostPutAPITestingModel model)
         {
             try
             {
                 HttpRequestMessage httpRequestMessage = HttpRequestMessageBasedOnMethodType(model.MethodType,model.Headers,model.APIUrl);
                 _logger.LogInformation("HttpApiService.TestApiWithHttpClient - Making API call.");
-                if (model.JsonSchema != null)
+                if (info.TestObject != null)
                 {
                     var json = JsonSerializer.Serialize(info.TestObject);
                     var requestContent = new StringContent(json, Encoding.UTF8, "application/json");
@@ -34,9 +34,9 @@ namespace APITestingService.Implementation
                 TestobjectInfo responseInfo = new TestobjectInfo
                 {
                     TestedObject = info.TestObject,
-                    NegativePropertyName = info.NegativePropertyName,
-                    NegativePropertyType = info.NegativePropertyType,
-                    NegativePropertyValue = info.NegativePropertyValue,
+                    TestPropertyName = info.NegativePropertyName,
+                    TestPropertyType = info.NegativePropertyType,
+                    TestPropertyValue = info.NegativePropertyValue,
                     APIResponse = await response.Content.ReadAsStringAsync(),
                     StatusCode = response.StatusCode,
                     IsSuccess = response.IsSuccessStatusCode
@@ -50,11 +50,44 @@ namespace APITestingService.Implementation
                 throw new InvalidOperationException($"Exception Occurred while making api call : {e.Message}");
             }
         }
-        public async Task<TestobjectInfo> TestGetDelApiWithHttpClient(GetDelTestInfo info, GetDeleteTestingModel model)
+
+        public async Task<TestobjectInfo> CustomTestPostPutApiWithHttpClient(KeyValue info, CustomPostPutTestingModel model)
         {
             try
             {
-                HttpRequestMessage httpRequestMessage = HttpRequestMessageBasedOnMethodType(model.MethodType,model.Headers,info.URL);
+                HttpRequestMessage httpRequestMessage = HttpRequestMessageBasedOnMethodType(model.MethodType, model.Headers, model.APIUrl);
+                _logger.LogInformation("HttpApiService.TestApiWithHttpClient - Making API call.");
+                if (info.Value != null)
+                {
+                    var requestContent = new StringContent(info.Value, Encoding.UTF8, "application/json");
+                    httpRequestMessage.Content = requestContent;
+                }
+
+                var response = await _client.SendAsync(httpRequestMessage);
+
+                TestobjectInfo responseInfo = new TestobjectInfo
+                {
+                    TestedObject = info.Value,
+                    TestPropertyName = info.Key,
+                    APIResponse = await response.Content.ReadAsStringAsync(),
+                    StatusCode = response.StatusCode,
+                    IsSuccess = response.IsSuccessStatusCode
+                };
+                _logger.LogInformation("HttpApiService.TestApiWithHttpClient - API call completed.");
+                return responseInfo;
+            }
+            catch (Exception e)
+            {
+                _logger.LogInformation("HttpApiService.TestApiWithHttpClient - API call failed.");
+                throw new InvalidOperationException($"Exception Occurred while making api call : {e.Message}");
+            }
+        }
+
+        public async Task<TestobjectInfo> TestGetDelApiWithHttpClient(GetDelTestInfo info, string methodType, List<KeyValue> headers, string url)
+        {
+            try
+            {
+                HttpRequestMessage httpRequestMessage = HttpRequestMessageBasedOnMethodType(methodType, headers, url);
                 _logger.LogInformation("HttpApiService.TestGetDelApiWithHttpClient - Making API call.");
                
                 var response = await _client.SendAsync(httpRequestMessage);
@@ -62,9 +95,9 @@ namespace APITestingService.Implementation
                 TestobjectInfo responseInfo = new TestobjectInfo
                 {
                     TestedObject = info.URL,
-                    NegativePropertyName = info.NegativePropertyName,
-                    NegativePropertyType = info.NegativePropertyType,
-                    NegativePropertyValue = info.NegativePropertyValue,
+                    TestPropertyName = info.TestPropertyName,
+                    TestPropertyType = info.TestPropertyType,
+                    TestPropertyValue = info.TestPropertyValue,
                     APIResponse = await response.Content.ReadAsStringAsync(),
                     StatusCode = response.StatusCode,
                     IsSuccess = response.IsSuccessStatusCode

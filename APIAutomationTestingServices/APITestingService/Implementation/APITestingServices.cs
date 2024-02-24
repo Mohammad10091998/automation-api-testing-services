@@ -19,7 +19,7 @@ namespace APITestingService.Implementation
             _httpApiService = httpApiService;
             _logger = logger;
         }
-        public async Task<APITestingResponse> TestPostPutAPI(APITestingModel testingModel)
+        public async Task<APITestingResponse> TestPostPutAPI(PostPutAPITestingModel testingModel)
         {
             _logger.LogInformation("APITestingServices.TestAPI - Started Generating TestObjects.");
             var generateTestObjects = await GenerateTestObjectsBasedOnJsonSchema(testingModel);
@@ -48,6 +48,33 @@ namespace APITestingService.Implementation
             return apiTestingResponse;
         }
 
+        public async Task<APITestingResponse> CustomTestPostPutAPI(CustomPostPutTestingModel testingModel)
+        {
+            _logger.LogInformation($"APITestingServices.CustomTestPostPutAPI - Started");
+            List<TestobjectInfo> testObjectsResponse = new List<TestobjectInfo>();
+            int successCount = 0;
+            int count = 1;
+            foreach (var testObject in testingModel.JsonSchemas)
+            {
+                _logger.LogInformation($"APITestingServices.CustomTestPostPutAPI - Looping : Test object number : {count}");
+                var response = await _httpApiService.CustomTestPostPutApiWithHttpClient(testObject, testingModel);
+                testObjectsResponse.Add(response);
+                successCount = response.IsSuccess ? successCount + 1 : successCount;
+                count++;
+            }
+
+            APITestingResponse apiTestingResponse = new APITestingResponse()
+            {
+                TestedObjectInfos = testObjectsResponse,
+                FailureCalls = testObjectsResponse.Count - successCount,
+                SuccessCalls = successCount,
+                TotalTestedObjects = testObjectsResponse.Count
+            };
+
+            _logger.LogInformation("APITestingServices.CustomTestPostPutAPI - Completed");
+            return apiTestingResponse;
+        }
+
         public async Task<APITestingResponse> TestGetDelAPI(GetDeleteTestingModel testingModel)
         {
             _logger.LogInformation($"APITestingServices.TestGetDelAPI - Started");
@@ -60,7 +87,7 @@ namespace APITestingService.Implementation
             foreach (var testObject in generatedTestObjects)
             {
                 _logger.LogInformation($"APITestingServices.TestGetDelAPI - Looping : Test object number : {count}");
-                var response = await _httpApiService.TestGetDelApiWithHttpClient(testObject, testingModel);
+                var response = await _httpApiService.TestGetDelApiWithHttpClient(testObject, testingModel.MethodType, testingModel.Headers, testingModel.APIUrl);
                 testObjectsResponse.Add(response);
                 successCount = response.IsSuccess ? successCount + 1 : successCount;
                 count++;
@@ -75,6 +102,36 @@ namespace APITestingService.Implementation
             };
 
             _logger.LogInformation("APITestingServices.TestGetDelAPI - Completed");
+            return apiTestingResponse;
+        }
+
+        public async Task<APITestingResponse> CustomTestGetDelAPI(CustomGetDelTestModel testingModel)
+        {
+            _logger.LogInformation($"APITestingServices.CustomTestGetDelAPI - Started");
+
+            List<GetDelTestInfo> generatedTestObjects = GenerateTestObjectsBasedOnCustomParams(testingModel);
+
+            List<TestobjectInfo> testObjectsResponse = new List<TestobjectInfo>();
+            int successCount = 0;
+            int count = 1;
+            foreach (var testObject in generatedTestObjects)
+            {
+                _logger.LogInformation($"APITestingServices.CustomTestGetDelAPI - Looping : Test object number : {count}");
+                var response = await _httpApiService.TestGetDelApiWithHttpClient(testObject, testingModel.MethodType, testingModel.Headers, testingModel.APIUrl);
+                testObjectsResponse.Add(response);
+                successCount = response.IsSuccess ? successCount + 1 : successCount;
+                count++;
+            }
+
+            APITestingResponse apiTestingResponse = new APITestingResponse()
+            {
+                TestedObjectInfos = testObjectsResponse,
+                FailureCalls = testObjectsResponse.Count - successCount,
+                SuccessCalls = successCount,
+                TotalTestedObjects = testObjectsResponse.Count
+            };
+
+            _logger.LogInformation("APITestingServices.CustomTestGetDelAPI - Completed");
             return apiTestingResponse;
         }
 
@@ -163,9 +220,38 @@ namespace APITestingService.Implementation
                     var url = GenerateURLFromParams(testingModel.APIUrl, param.Key, value, testingModel.Params, index);
                     var testObject = new GetDelTestInfo
                     {
-                        NegativePropertyName = param.Key,
-                        NegativePropertyType = type,
-                        NegativePropertyValue = value,
+                        TestPropertyName = param.Key,
+                        TestPropertyType = type,
+                        TestPropertyValue = value,
+                        URL = url
+                    };
+                    generatedTestObjects.Add(testObject);
+                }
+            }
+
+            return generatedTestObjects;
+        }
+        private List<GetDelTestInfo> GenerateTestObjectsBasedOnCustomParams(CustomGetDelTestModel testingModel)
+        {
+            List<GetDelTestInfo> generatedTestObjects = new List<GetDelTestInfo>();
+            List<KeyValue> keyValuePairs = new List<KeyValue>();
+            foreach (var param in testingModel.Params)
+            {
+                KeyValue kv = new KeyValue() { Key = param.Key, Value = param.Values.FirstOrDefault() };
+                keyValuePairs.Add(kv);
+            }
+
+            for (int index = 0; index < testingModel.Params.Count; index++)
+            {
+                var param = testingModel.Params[index];
+                
+                foreach (var value in param.Values)
+                {
+                    var url = GenerateURLFromParams(testingModel.APIUrl, param.Key, value, keyValuePairs, index);
+                    var testObject = new GetDelTestInfo
+                    {
+                        TestPropertyName = param.Key,
+                        TestPropertyValue = value,
                         URL = url
                     };
                     generatedTestObjects.Add(testObject);
@@ -175,7 +261,7 @@ namespace APITestingService.Implementation
             return generatedTestObjects;
         }
 
-        private async Task<List<TestPayloadInfo>> GenerateTestObjectsBasedOnJsonSchema(APITestingModel testingModel)
+        private async Task<List<TestPayloadInfo>> GenerateTestObjectsBasedOnJsonSchema(PostPutAPITestingModel testingModel)
         {
             var converter = new ExpandoObjectConverter();
             dynamic jsonObject = JsonConvert.DeserializeObject<ExpandoObject>(testingModel.JsonSchema, converter);
