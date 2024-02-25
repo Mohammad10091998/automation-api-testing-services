@@ -80,51 +80,6 @@ public static class GenerateTestObjectHelper
         return type;
     }
 
-    //public static object CreateTypedObject(Type type, dynamic input)
-    //{
-    //    if (!(input is ExpandoObject))
-    //    {
-    //        return Convert.ChangeType(input, type);
-    //    }
-    //    object obj = Activator.CreateInstance(type);
-
-    //    var typeProps = type.GetProperties().ToDictionary(c => c.Name);
-
-    //    foreach (var expando in (IDictionary<string, object>)input)
-    //    {
-    //        if (typeProps.ContainsKey(expando.Key) &&
-    //            expando.Value != null && (expando.Value.GetType().Name != "DBNull" || expando.Value != DBNull.Value))
-    //        {
-    //            object val;
-    //            var propInfo = typeProps[expando.Key];
-    //            if (expando.Value is ExpandoObject)
-    //            {
-    //                var propType = propInfo.PropertyType;
-    //                val = CreateTypedObject(propType, expando.Value);
-    //            }
-    //            else if (expando.Value is IList)
-    //            {
-    //                var internalType = propInfo.PropertyType.GenericTypeArguments.FirstOrDefault() ?? typeof(object);
-    //                var temp = (IList)expando.Value;
-    //                var newList = new List<object>().Cast(internalType).ToList(internalType);
-    //                for (int i = 0; i < temp.Count; i++)
-    //                {
-    //                    var child = CreateTypedObject(internalType, temp[i]);
-    //                    newList.Add(child);
-    //                };
-    //                val = newList;
-    //            }
-    //            else
-    //            {
-    //                val = expando.Value;
-    //            }
-    //            propInfo.SetValue(obj, val, null);
-    //        }
-    //    }
-
-    //    return obj;
-    //}
-
     public static object CreateDifferentTestObject(Type type, dynamic input, string updatingKey, object updatingValue, int propertyIndex)
     {
         if (!(input is ExpandoObject))

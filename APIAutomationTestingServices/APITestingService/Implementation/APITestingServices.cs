@@ -3,10 +3,7 @@ using Microsoft.Extensions.Logging;
 using ModelsLibrary;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
-using System;
 using System.Dynamic;
-using System.Reflection;
 
 namespace APITestingService.Implementation
 {
@@ -21,118 +18,150 @@ namespace APITestingService.Implementation
         }
         public async Task<APITestingResponse> TestPostPutAPI(PostPutAPITestingModel testingModel)
         {
-            _logger.LogInformation("APITestingServices.TestAPI - Started Generating TestObjects.");
-            var generateTestObjects = await GenerateTestObjectsBasedOnJsonSchema(testingModel);
-
-            List<TestobjectInfo> testObjects = new List<TestobjectInfo>();
-            int successCount = 0;
-            int count = 1;
-            foreach (var testObject in generateTestObjects)
+            try
             {
-                _logger.LogInformation($"APITestingServices.TestAPI - Looping : Test object number : {count}");
-                var response = await _httpApiService.TestPostPutApiWithHttpClient(testObject, testingModel);
-                testObjects.Add(response);
-                successCount = response.IsSuccess ? successCount + 1 : successCount;
-                count++;
+                _logger.LogInformation("APITestingServices.TestAPI - Started Generating TestObjects.");
+                var generateTestObjects = await GenerateTestObjectsBasedOnJsonSchema(testingModel);
+
+                List<TestobjectInfo> testObjects = new List<TestobjectInfo>();
+                int successCount = 0;
+                int count = 1;
+                foreach (var testObject in generateTestObjects)
+                {
+                    _logger.LogInformation($"APITestingServices.TestAPI - Looping : Test object number : {count}");
+                    var response = await _httpApiService.TestPostPutApiWithHttpClient(testObject, testingModel);
+                    testObjects.Add(response);
+                    successCount = response.IsSuccess ? successCount + 1 : successCount;
+                    count++;
+                }
+
+                APITestingResponse apiTestingResponse = new APITestingResponse()
+                {
+                    TestedObjectInfos = testObjects,
+                    FailureCalls = testObjects.Count - successCount,
+                    SuccessCalls = successCount,
+                    TotalTestedObjects = testObjects.Count
+                };
+
+                _logger.LogInformation("APITestingServices.TestAPI - Completed");
+                return apiTestingResponse;
             }
-
-            APITestingResponse apiTestingResponse = new APITestingResponse()
+            catch (Exception ex)
             {
-                TestedObjectInfos = testObjects,
-                FailureCalls = testObjects.Count - successCount,
-                SuccessCalls = successCount,
-                TotalTestedObjects = testObjects.Count
-            };
-
-            _logger.LogInformation("APITestingServices.TestAPI - Completed");
-            return apiTestingResponse;
+                _logger.LogError("APITestingServices.TestAPI - Failed");
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<APITestingResponse> CustomTestPostPutAPI(CustomPostPutTestingModel testingModel)
         {
-            _logger.LogInformation($"APITestingServices.CustomTestPostPutAPI - Started");
-            List<TestobjectInfo> testObjectsResponse = new List<TestobjectInfo>();
-            int successCount = 0;
-            int count = 1;
-            foreach (var testObject in testingModel.JsonSchemas)
+            try
             {
-                _logger.LogInformation($"APITestingServices.CustomTestPostPutAPI - Looping : Test object number : {count}");
-                var response = await _httpApiService.CustomTestPostPutApiWithHttpClient(testObject, testingModel);
-                testObjectsResponse.Add(response);
-                successCount = response.IsSuccess ? successCount + 1 : successCount;
-                count++;
+                _logger.LogInformation($"APITestingServices.CustomTestPostPutAPI - Started");
+                List<TestobjectInfo> testObjectsResponse = new List<TestobjectInfo>();
+                int successCount = 0;
+                int count = 1;
+                foreach (var testObject in testingModel.JsonSchemas)
+                {
+                    _logger.LogInformation($"APITestingServices.CustomTestPostPutAPI - Looping : Test object number : {count}");
+                    var response = await _httpApiService.CustomTestPostPutApiWithHttpClient(testObject, testingModel);
+                    testObjectsResponse.Add(response);
+                    successCount = response.IsSuccess ? successCount + 1 : successCount;
+                    count++;
+                }
+
+                APITestingResponse apiTestingResponse = new APITestingResponse()
+                {
+                    TestedObjectInfos = testObjectsResponse,
+                    FailureCalls = testObjectsResponse.Count - successCount,
+                    SuccessCalls = successCount,
+                    TotalTestedObjects = testObjectsResponse.Count
+                };
+
+                _logger.LogInformation("APITestingServices.CustomTestPostPutAPI - Completed");
+                return apiTestingResponse;
             }
-
-            APITestingResponse apiTestingResponse = new APITestingResponse()
+            catch (Exception ex)
             {
-                TestedObjectInfos = testObjectsResponse,
-                FailureCalls = testObjectsResponse.Count - successCount,
-                SuccessCalls = successCount,
-                TotalTestedObjects = testObjectsResponse.Count
-            };
-
-            _logger.LogInformation("APITestingServices.CustomTestPostPutAPI - Completed");
-            return apiTestingResponse;
+                _logger.LogError("APITestingServices.CustomTestPostPutAPI - Failed");
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<APITestingResponse> TestGetDelAPI(GetDeleteTestingModel testingModel)
         {
-            _logger.LogInformation($"APITestingServices.TestGetDelAPI - Started");
-
-            List<GetDelTestInfo> generatedTestObjects = GenerateTestObjectsBasedOnParams(testingModel);
-
-            List<TestobjectInfo> testObjectsResponse = new List<TestobjectInfo>();
-            int successCount = 0;
-            int count = 1;
-            foreach (var testObject in generatedTestObjects)
+            try
             {
-                _logger.LogInformation($"APITestingServices.TestGetDelAPI - Looping : Test object number : {count}");
-                var response = await _httpApiService.TestGetDelApiWithHttpClient(testObject, testingModel.MethodType, testingModel.Headers, testingModel.APIUrl);
-                testObjectsResponse.Add(response);
-                successCount = response.IsSuccess ? successCount + 1 : successCount;
-                count++;
+                _logger.LogInformation($"APITestingServices.TestGetDelAPI - Started");
+
+                List<GetDelTestInfo> generatedTestObjects = GenerateTestObjectsBasedOnParams(testingModel);
+
+                List<TestobjectInfo> testObjectsResponse = new List<TestobjectInfo>();
+                int successCount = 0;
+                int count = 1;
+                foreach (var testObject in generatedTestObjects)
+                {
+                    _logger.LogInformation($"APITestingServices.TestGetDelAPI - Looping : Test object number : {count}");
+                    var response = await _httpApiService.TestGetDelApiWithHttpClient(testObject, testingModel.MethodType, testingModel.Headers, testingModel.APIUrl);
+                    testObjectsResponse.Add(response);
+                    successCount = response.IsSuccess ? successCount + 1 : successCount;
+                    count++;
+                }
+
+                APITestingResponse apiTestingResponse = new APITestingResponse()
+                {
+                    TestedObjectInfos = testObjectsResponse,
+                    FailureCalls = testObjectsResponse.Count - successCount,
+                    SuccessCalls = successCount,
+                    TotalTestedObjects = testObjectsResponse.Count
+                };
+
+                _logger.LogInformation("APITestingServices.TestGetDelAPI - Completed");
+                return apiTestingResponse;
             }
-
-            APITestingResponse apiTestingResponse = new APITestingResponse()
+            catch (Exception ex)
             {
-                TestedObjectInfos = testObjectsResponse,
-                FailureCalls = testObjectsResponse.Count - successCount,
-                SuccessCalls = successCount,
-                TotalTestedObjects = testObjectsResponse.Count
-            };
-
-            _logger.LogInformation("APITestingServices.TestGetDelAPI - Completed");
-            return apiTestingResponse;
+                _logger.LogError("APITestingServices.TestGetDelAPI - Failed");
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<APITestingResponse> CustomTestGetDelAPI(CustomGetDelTestModel testingModel)
         {
-            _logger.LogInformation($"APITestingServices.CustomTestGetDelAPI - Started");
-
-            List<GetDelTestInfo> generatedTestObjects = GenerateTestObjectsBasedOnCustomParams(testingModel);
-
-            List<TestobjectInfo> testObjectsResponse = new List<TestobjectInfo>();
-            int successCount = 0;
-            int count = 1;
-            foreach (var testObject in generatedTestObjects)
+            try
             {
-                _logger.LogInformation($"APITestingServices.CustomTestGetDelAPI - Looping : Test object number : {count}");
-                var response = await _httpApiService.TestGetDelApiWithHttpClient(testObject, testingModel.MethodType, testingModel.Headers, testingModel.APIUrl);
-                testObjectsResponse.Add(response);
-                successCount = response.IsSuccess ? successCount + 1 : successCount;
-                count++;
+                _logger.LogInformation($"APITestingServices.CustomTestGetDelAPI - Started");
+
+                List<GetDelTestInfo> generatedTestObjects = GenerateTestObjectsBasedOnCustomParams(testingModel);
+
+                List<TestobjectInfo> testObjectsResponse = new List<TestobjectInfo>();
+                int successCount = 0;
+                int count = 1;
+                foreach (var testObject in generatedTestObjects)
+                {
+                    _logger.LogInformation($"APITestingServices.CustomTestGetDelAPI - Looping : Test object number : {count}");
+                    var response = await _httpApiService.TestGetDelApiWithHttpClient(testObject, testingModel.MethodType, testingModel.Headers, testingModel.APIUrl);
+                    testObjectsResponse.Add(response);
+                    successCount = response.IsSuccess ? successCount + 1 : successCount;
+                    count++;
+                }
+
+                APITestingResponse apiTestingResponse = new APITestingResponse()
+                {
+                    TestedObjectInfos = testObjectsResponse,
+                    FailureCalls = testObjectsResponse.Count - successCount,
+                    SuccessCalls = successCount,
+                    TotalTestedObjects = testObjectsResponse.Count
+                };
+
+                _logger.LogInformation("APITestingServices.CustomTestGetDelAPI - Completed");
+                return apiTestingResponse;
             }
-
-            APITestingResponse apiTestingResponse = new APITestingResponse()
+            catch (Exception ex)
             {
-                TestedObjectInfos = testObjectsResponse,
-                FailureCalls = testObjectsResponse.Count - successCount,
-                SuccessCalls = successCount,
-                TotalTestedObjects = testObjectsResponse.Count
-            };
-
-            _logger.LogInformation("APITestingServices.CustomTestGetDelAPI - Completed");
-            return apiTestingResponse;
+                _logger.LogError("APITestingServices.CustomTestGetDelAPI - Failed");
+                throw new Exception(ex.Message); 
+            }
         }
 
         private string GenerateURLFromParams(string apiUrl, string key, string value, List<KeyValue> @params, int index)
@@ -263,12 +292,20 @@ namespace APITestingService.Implementation
 
         private async Task<List<TestPayloadInfo>> GenerateTestObjectsBasedOnJsonSchema(PostPutAPITestingModel testingModel)
         {
-            var converter = new ExpandoObjectConverter();
-            dynamic jsonObject = JsonConvert.DeserializeObject<ExpandoObject>(testingModel.JsonSchema, converter);
+            try
+            {
+                var converter = new ExpandoObjectConverter();
+                dynamic jsonObject = JsonConvert.DeserializeObject<ExpandoObject>(testingModel.JsonSchema, converter);
 
-            List<TestPayloadInfo> listOfTestPayloadInfo = await GenerateTestObjectHelper.CreateTestObjectsFromExpando(jsonObject);
+                List<TestPayloadInfo> listOfTestPayloadInfo = await GenerateTestObjectHelper.CreateTestObjectsFromExpando(jsonObject);
 
-            return listOfTestPayloadInfo;
+                return listOfTestPayloadInfo;
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception($"Exception occurred when Generating Test Object : {ex.Message}");
+            }
         }
     }
 }

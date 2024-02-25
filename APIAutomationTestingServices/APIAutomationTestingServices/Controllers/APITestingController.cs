@@ -1,4 +1,5 @@
-﻿using APITestingService.Interface;
+﻿using APIAutomationTestingServices.Filter;
+using APITestingService.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ModelsLibrary;
@@ -18,6 +19,7 @@ namespace APIAutomationTestingServices.Controllers
         }
 
         [HttpPost("TestPostPut")]
+        [APITestingValidatorFilter(PropertyName = "testModel")]
         public async Task<ActionResult<APITestingResponse>> TestPostPutAPITestResults(PostPutAPITestingModel testModel)
         {
             try
@@ -34,6 +36,7 @@ namespace APIAutomationTestingServices.Controllers
             }
         }
         [HttpPost("CustomTestPostPut")]
+        [APITestingValidatorFilter(PropertyName = "testModel")]
         public async Task<ActionResult<APITestingResponse>> CustomTestPostPutAPITestResults(CustomPostPutTestingModel testModel)
         {
             try
@@ -50,6 +53,7 @@ namespace APIAutomationTestingServices.Controllers
             }
         }
         [HttpPost("TestGetDel")]
+        [APITestingValidatorFilter(PropertyName = "testModel")]
         public async Task<ActionResult<APITestingResponse>> TestGetDelAPITestResults(GetDeleteTestingModel testModel)
         {
             try
@@ -66,6 +70,7 @@ namespace APIAutomationTestingServices.Controllers
             }
         }
         [HttpPost("CustomTestGetDel")]
+        [APITestingValidatorFilter(PropertyName = "testModel")]
         public async Task<ActionResult<APITestingResponse>> CustomTestGetDelAPITestResults(CustomGetDelTestModel testModel)
         {
             try
