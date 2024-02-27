@@ -3,7 +3,10 @@ using System.Dynamic;
 using System.Linq.Dynamic.Core;
 using System.Security;
 using System.Text.Json.Nodes;
+using APITestingService;
 using ModelsLibrary;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 public static class GenerateTestObjectHelper
@@ -71,7 +74,7 @@ public static class GenerateTestObjectHelper
                 {
                     value = CreateAbstractClassType(expando.Value, list);
                 }
-                AddNodeInTheList(expando.Key, value, list);
+                AddNodeInTheList(expando.Key, list, expando.Value);
                 props.Add(new DynamicProperty(expando.Key, value));
             }
         }
@@ -121,6 +124,11 @@ public static class GenerateTestObjectHelper
                     {
                         if (propertyIndex == currentIndex)
                         {
+                            if (propInfo.PropertyType == typeof(string) && updatingValue is char charValue)
+                            {
+                                // Convert char to string
+                                updatingValue = charValue.ToString();
+                            }
                             val = updatingValue;
                         }
 
@@ -148,34 +156,67 @@ public static class GenerateTestObjectHelper
         var genericMethod = methodInfo.MakeGenericMethod(innerType);
         return genericMethod.Invoke(null, new[] { self }) as IList;
     }
-    private static void AddNodeInTheList(string key, Type value, LinkedList<Node> list)
+    private static void AddNodeInTheList(string key, LinkedList<Node> list, object valueOfProp)
     {
-        string typeName = value.Name;
-        if (typeName == "Int64")
+        string parsedType = ParseType(valueOfProp);
+
+        if (!string.IsNullOrEmpty(parsedType))
         {
-            Node node = new Node(key, typeName);
+            Node node = new Node(key, parsedType);
             list.AddLast(node);
         }
-        else if (typeName == "String")
+    }
+    private static string ParseType(object value)
+    {
+        if (int.TryParse(value.ToString(), out _))
         {
-            Node node = new Node(key, typeName);
-            list.AddLast(node);
+            return "int";
         }
-        else if (typeName == "DateTime")
+        else if (long.TryParse(value.ToString(), out _))
         {
-            Node node = new Node(key, typeName);
-            list.AddLast(node);
+            return "long";
         }
+        else if (double.TryParse(value.ToString(), out _))
+        {
+            return "double";
+        }
+        else if (float.TryParse(value.ToString(), out _))
+        {
+            return "float";
+        }
+        else if (decimal.TryParse(value.ToString(), out _))
+        {
+            return "decimal";
+        }
+        else if (bool.TryParse(value.ToString(), out _))
+        {
+            return "bool";
+        }
+        else if (DateTime.TryParse(value.ToString(), out _))
+        {
+            return "datetime";
+        }
+        else if (Guid.TryParse(value.ToString(), out _))
+        {
+            return "guid";
+        }
+        else if (char.TryParse(value.ToString(), out _))
+        {
+            return "char";
+        }
+        else if (value.GetType() == typeof(string))
+        {
+            return "string";
+        }
+
+        return string.Empty;
     }
     public static List<TestPayloadInfo> GenerateUniqueTestObjects(LinkedList<Node> propertyNodes, Type objectType, dynamic input)
     {
         List<TestPayloadInfo> uniqueTestObjects = new List<TestPayloadInfo>();
 
-        List<int> integerValues = new List<int>() { int.MinValue, 0, int.MaxValue };
-        List<string> stringValues = new List<string>() { null, "", "abc123", "!@#$%","abc_xyx","abc.xyz", "abc xyz" };
-
         Dictionary<string, int> keyCountMap = new Dictionary<string, int>();
-       
+
         foreach (var propertyNode in propertyNodes)
         {
             if (keyCountMap.TryGetValue(propertyNode.Key, out int propertyIndex))
@@ -189,41 +230,272 @@ public static class GenerateTestObjectHelper
                 propertyIndex = 0;
             }
 
-            if (propertyNode.PropertyType == "Int64")
+            if (propertyNode.PropertyType == "int")
             {
-                foreach (var integerValue in integerValues)
-                {                                                                                                   
-                    currentIndex = 0;
-                    var testObject = CreateDifferentTestObject(objectType, input, propertyNode.Key, integerValue, propertyIndex);
-                    TestPayloadInfo testPayloadInfo = new TestPayloadInfo
-                    {
-                        TestObject = testObject,
-                        NegativePropertyName = propertyNode.Key,
-                        NegativePropertyValue = integerValue.ToString(),
-                        NegativePropertyType = propertyNode.PropertyType
-                    };
-                    uniqueTestObjects.Add(testPayloadInfo);
-                }
-            }
-            if (propertyNode.PropertyType == "String")
-            {
-                foreach (var value in stringValues)
+                foreach (var value in TestDataValues.IntegerValues)
                 {
                     currentIndex = 0;
                     var testObject = CreateDifferentTestObject(objectType, input, propertyNode.Key, value, propertyIndex);
-                    TestPayloadInfo testPayloadInfo = new TestPayloadInfo
-                    {
-                        TestObject = testObject,
-                        NegativePropertyName = propertyNode.Key,
-                        NegativePropertyValue = value,
-                        NegativePropertyType = propertyNode.PropertyType
-                    };
+                    var testPayloadInfo = CreateTestPayloadInfo(testObject, propertyNode.Key, value.ToString(), propertyNode.PropertyType);
                     uniqueTestObjects.Add(testPayloadInfo);
                 }
             }
+            if (propertyNode.PropertyType == "long")
+            {
+                foreach (var value in TestDataValues.LongValues)
+                {
+                    currentIndex = 0;
+                    var testObject = CreateDifferentTestObject(objectType, input, propertyNode.Key, value, propertyIndex);
+                    var testPayloadInfo = CreateTestPayloadInfo(testObject, propertyNode.Key, value.ToString(), propertyNode.PropertyType);
+                    uniqueTestObjects.Add(testPayloadInfo);
+                }
+            }
+            else if (propertyNode.PropertyType == "string")
+            {
+                foreach (var value in TestDataValues.StringValues)
+                {
+                    currentIndex = 0;
+                    var testObject = CreateDifferentTestObject(objectType, input, propertyNode.Key, value, propertyIndex);
+                    var testPayloadInfo = CreateTestPayloadInfo(testObject, propertyNode.Key, value?.ToString(), propertyNode.PropertyType);
+                    uniqueTestObjects.Add(testPayloadInfo);
+                }
+            }
+            else if (propertyNode.PropertyType == "double")
+            {
+                foreach (var value in TestDataValues.DoubleValues)
+                {
+                    currentIndex = 0;
+                    var testObject = CreateDifferentTestObject(objectType, input, propertyNode.Key, value, propertyIndex);
+                    var testPayloadInfo = CreateTestPayloadInfo(testObject, propertyNode.Key, value.ToString(), propertyNode.PropertyType);
+                    uniqueTestObjects.Add(testPayloadInfo);
+                }
+            }
+            else if (propertyNode.PropertyType == "float")
+            {
+                foreach (var value in TestDataValues.FloatValues)
+                {
+                    currentIndex = 0;
+                    var testObject = CreateDifferentTestObject(objectType, input, propertyNode.Key, value, propertyIndex);
+                    var testPayloadInfo = CreateTestPayloadInfo(testObject, propertyNode.Key, value.ToString(), propertyNode.PropertyType);
+                    uniqueTestObjects.Add(testPayloadInfo);
+                }
+            }
+            else if (propertyNode.PropertyType == "decimal")
+            {
+                foreach (var value in TestDataValues.DecimalValues)
+                {
+                    currentIndex = 0;
+                    var testObject = CreateDifferentTestObject(objectType, input, propertyNode.Key, value, propertyIndex);
+                    var testPayloadInfo = CreateTestPayloadInfo(testObject, propertyNode.Key, value.ToString(), propertyNode.PropertyType);
+                    uniqueTestObjects.Add(testPayloadInfo);
+                }
+            }
+            else if (propertyNode.PropertyType == "bool")
+            {
+                foreach (var value in TestDataValues.BoolValues)
+                {
+                    currentIndex = 0;
+                    var testObject = CreateDifferentTestObject(objectType, input, propertyNode.Key, value, propertyIndex);
+                    var testPayloadInfo = CreateTestPayloadInfo(testObject, propertyNode.Key, value.ToString(), propertyNode.PropertyType);
+                    uniqueTestObjects.Add(testPayloadInfo);
+                }
+            }
+            else if (propertyNode.PropertyType == "datetime")
+            {
+                foreach (var value in TestDataValues.DateTimeValues)
+                {
+                    currentIndex = 0;
+                    var testObject = CreateDifferentTestObject(objectType, input, propertyNode.Key, value, propertyIndex);
+                    var testPayloadInfo = CreateTestPayloadInfo(testObject, propertyNode.Key, value.ToString("yyyy-MM-ddTHH:mm:ss"), propertyNode.PropertyType);
+                    uniqueTestObjects.Add(testPayloadInfo);
+                }
+            }
+            else if (propertyNode.PropertyType == "guid")
+            {
+                foreach (var value in TestDataValues.GuidValues)
+                {
+                    currentIndex = 0;
+                    var testObject = CreateDifferentTestObject(objectType, input, propertyNode.Key, value, propertyIndex);
+                    var testPayloadInfo = CreateTestPayloadInfo(testObject, propertyNode.Key, value.ToString(), propertyNode.PropertyType);
+                    uniqueTestObjects.Add(testPayloadInfo);
+                }
+            }
+            else if (propertyNode.PropertyType == "char")
+            {
+                foreach (var value in TestDataValues.CharValues)
+                {
+                    currentIndex = 0;
+                    var testObject = CreateDifferentTestObject(objectType, input, propertyNode.Key, value, propertyIndex);
+                    var testPayloadInfo = CreateTestPayloadInfo(testObject, propertyNode.Key, value.ToString(), propertyNode.PropertyType);
+                    uniqueTestObjects.Add(testPayloadInfo);
+                }
+            }
+            // Add more conditions for other data types as needed
         }
 
         return uniqueTestObjects;
     }
 
+    private static TestPayloadInfo CreateTestPayloadInfo(object testObject, string negativePropertyName, object negativePropertyValue, string negativePropertyType)
+    {
+        return new TestPayloadInfo
+        {
+            TestObject = testObject,
+            NegativePropertyName = negativePropertyName,
+            NegativePropertyValue = negativePropertyValue?.ToString(),
+            NegativePropertyType = negativePropertyType
+        };
+    }
+    public static string GenerateURLFromParams(string apiUrl, string key, string value, List<KeyValue> @params, int index)
+    {
+        if (key != null && value != null)
+        {
+            apiUrl = $"{apiUrl}?{key}={value}";
+        }
+        for (int ind = 0; ind < @params.Count; ind++)
+        {
+            if (ind == index) continue;
+            var param = @params[ind];
+            if (apiUrl.Contains("?"))
+            {
+                apiUrl = $"{apiUrl}&{param.Key}={param.Value}";
+            }
+            else
+            {
+                apiUrl = $"{apiUrl}?{param.Key}={param.Value}";
+            }
+        }
+
+        return apiUrl;
+    }
+
+    public static (string, List<string>) GenerateTestValuesBasedOnType(KeyValue param)
+    {
+        if (int.TryParse(param.Value, out _))
+        {
+            var testValues = TestDataValues.IntegerValues;
+            return ("int", testValues.Select(value => value.ToString()).ToList());
+        }
+        else if (long.TryParse(param.Value, out _))
+        {
+            var testValues = TestDataValues.LongValues;
+            return ("long", testValues.Select(value => value.ToString()).ToList());
+        }
+        else if (double.TryParse(param.Value, out _))
+        {
+            var testValues = TestDataValues.DoubleValues;
+            return ("double", testValues.Select(value => value.ToString()).ToList());
+        }
+        else if (float.TryParse(param.Value, out _))
+        {
+            var testValues = TestDataValues.FloatValues;
+            return ("float", testValues.Select(value => value.ToString()).ToList());
+        }
+        else if (decimal.TryParse(param.Value, out _))
+        {
+            var testValues = TestDataValues.DecimalValues;
+            return ("decimal", testValues.Select(value => value.ToString()).ToList());
+        }
+        else if (bool.TryParse(param.Value, out _))
+        {
+            var testValues = TestDataValues.BoolValues;
+            return ("bool", testValues.Select(value => value.ToString()).ToList());
+        }
+        else if (DateTime.TryParse(param.Value, out _))
+        {
+            var testValues = TestDataValues.DateTimeValues;
+            return ("DateTime", testValues.Select(value => value.ToString()).ToList());
+        }
+        else if (Guid.TryParse(param.Value, out _))
+        {
+            var testValues = TestDataValues.GuidValues;
+            return ("Guid", testValues.Select(value => value.ToString()).ToList());
+        }
+        else if (char.TryParse(param.Value, out _))
+        {
+            var testValues = TestDataValues.CharValues;
+            return ("char", testValues.Select(value => value.ToString()).ToList());
+        }
+        else
+        {
+            var testValues = TestDataValues.StringValues;
+            return ("string", testValues.Select(value => value.ToString()).ToList());
+        }
+    }
+    public static List<GetDelTestInfo> GenerateTestObjectsBasedOnParams(GetDeleteTestingModel testingModel)
+    {
+        List<GetDelTestInfo> generatedTestObjects = new List<GetDelTestInfo>();
+
+        var userProviderParamsUrl = GenerateURLFromParams(testingModel.APIUrl, null, null, testingModel.Params, -1);
+
+        var userProviderCase = new GetDelTestInfo { URL = userProviderParamsUrl };
+        generatedTestObjects.Add(userProviderCase);
+
+        for (int index = 0; index < testingModel.Params.Count; index++)
+        {
+            var param = testingModel.Params[index];
+            (string type, List<string> testValues) = GenerateTestValuesBasedOnType(param);
+            foreach (var value in testValues)
+            {
+                var url = GenerateURLFromParams(testingModel.APIUrl, param.Key, value, testingModel.Params, index);
+                var testObject = new GetDelTestInfo
+                {
+                    TestPropertyName = param.Key,
+                    TestPropertyType = type,
+                    TestPropertyValue = value,
+                    URL = url
+                };
+                generatedTestObjects.Add(testObject);
+            }
+        }
+
+        return generatedTestObjects;
+    }
+    public static List<GetDelTestInfo> GenerateTestObjectsBasedOnCustomParams(CustomGetDelTestModel testingModel)
+    {
+        List<GetDelTestInfo> generatedTestObjects = new List<GetDelTestInfo>();
+        List<KeyValue> keyValuePairs = new List<KeyValue>();
+        foreach (var param in testingModel.Params)
+        {
+            KeyValue kv = new KeyValue() { Key = param.Key, Value = param.Values.FirstOrDefault() };
+            keyValuePairs.Add(kv);
+        }
+
+        for (int index = 0; index < testingModel.Params.Count; index++)
+        {
+            var param = testingModel.Params[index];
+
+            foreach (var value in param.Values)
+            {
+                var url = GenerateURLFromParams(testingModel.APIUrl, param.Key, value, keyValuePairs, index);
+                var testObject = new GetDelTestInfo
+                {
+                    TestPropertyName = param.Key,
+                    TestPropertyValue = value,
+                    URL = url
+                };
+                generatedTestObjects.Add(testObject);
+            }
+        }
+
+        return generatedTestObjects;
+    }
+
+    public static async Task<List<TestPayloadInfo>> GenerateTestObjectsBasedOnJsonSchema(PostPutAPITestingModel testingModel)
+    {
+        try
+        {
+            var converter = new ExpandoObjectConverter();
+            dynamic jsonObject = JsonConvert.DeserializeObject<ExpandoObject>(testingModel.JsonSchema, converter);
+
+            List<TestPayloadInfo> listOfTestPayloadInfo = await GenerateTestObjectHelper.CreateTestObjectsFromExpando(jsonObject);
+
+            return listOfTestPayloadInfo;
+        }
+        catch (Exception ex)
+        {
+
+            throw new Exception($"Exception occurred when Generating Test Object : {ex.Message}");
+        }
+    }
 }
