@@ -20,7 +20,7 @@ namespace APIAutomationTestingServices.Controllers
 
         [HttpPost("TestPostPut")]
         [APITestingValidatorFilter(PropertyName = "testModel")]
-        public async Task<ActionResult<APITestingResponse>> TestPostPutAPITestResults(PostPutAPITestingModel testModel)
+        public async Task<ActionResult<APITestingResponse>> TestPostPutAPITestResults([FromBody] PostPutAPITestingModel testModel)
         {
             try
             {
@@ -37,7 +37,7 @@ namespace APIAutomationTestingServices.Controllers
         }
         [HttpPost("CustomTestPostPut")]
         [APITestingValidatorFilter(PropertyName = "testModel")]
-        public async Task<ActionResult<APITestingResponse>> CustomTestPostPutAPITestResults(CustomPostPutTestingModel testModel)
+        public async Task<ActionResult<APITestingResponse>> CustomTestPostPutAPITestResults([FromBody] CustomPostPutTestingModel testModel)
         {
             try
             {
@@ -54,7 +54,7 @@ namespace APIAutomationTestingServices.Controllers
         }
         [HttpPost("TestGetDel")]
         [APITestingValidatorFilter(PropertyName = "testModel")]
-        public async Task<ActionResult<APITestingResponse>> TestGetDelAPITestResults(GetDeleteTestingModel testModel)
+        public async Task<ActionResult<APITestingResponse>> TestGetDelAPITestResults([FromBody] GetDeleteTestingModel testModel)
         {
             try
             {
@@ -71,7 +71,7 @@ namespace APIAutomationTestingServices.Controllers
         }
         [HttpPost("CustomTestGetDel")]
         [APITestingValidatorFilter(PropertyName = "testModel")]
-        public async Task<ActionResult<APITestingResponse>> CustomTestGetDelAPITestResults(CustomGetDelTestModel testModel)
+        public async Task<ActionResult<APITestingResponse>> CustomTestGetDelAPITestResults([FromBody] CustomGetDelTestModel testModel)
         {
             try
             {
