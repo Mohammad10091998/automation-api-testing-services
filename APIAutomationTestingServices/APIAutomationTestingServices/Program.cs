@@ -43,7 +43,7 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Automation Testing V1");
-    c.RoutePrefix = "swagger"; // Set the URI root to the application root
+    c.RoutePrefix = string.Empty; // Set the URI root to the application root
 });
 
 app.UseHttpsRedirection();
