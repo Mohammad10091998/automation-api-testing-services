@@ -19,22 +19,25 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
     {
-        builder.AllowAnyOrigin()
+        builder.WithOrigins("http://localhost:4200")
                .AllowAnyHeader()
                .AllowAnyMethod();
     });
 });
 
+
 var app = builder.Build();
 
 app.UseCors();
 
+// Configure the HTTP request pipeline.
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//}
 app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Automation Testing V1");
-    c.RoutePrefix = string.Empty; // Set the URI root to the application root
-});
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
