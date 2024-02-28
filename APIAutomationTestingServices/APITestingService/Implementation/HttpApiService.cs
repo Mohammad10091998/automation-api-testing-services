@@ -1,6 +1,7 @@
 ﻿using APITestingService.Interface;
 using Microsoft.Extensions.Logging;
 using ModelsLibrary;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 //using System.Net.Http;
@@ -41,13 +42,25 @@ namespace APITestingService.Implementation
                     StatusCode = response.StatusCode,
                     IsSuccess = response.IsSuccessStatusCode
                 };
-                _logger.LogInformation("HttpApiService.TestApiWithHttpClient - API call completed.");
+                _logger.LogInformation("HttpApiService.TestPostPutApiWithHttpClient - API call completed.");
                 return responseInfo;
             }
             catch (Exception e)
             {
-                _logger.LogInformation("HttpApiService.TestApiWithHttpClient - API call failed.");
-                throw new InvalidOperationException($"Exception Occurred while making api call : {e.Message}");
+                _logger.LogError($"HttpApiService.TestPostPutApiWithHttpClient - Exception occurred while making api call : {e.Message}");
+
+                var errorResponseInfo = new TestobjectInfo
+                {
+                    TestedObject = info.TestObject,
+                    TestPropertyName = info.NegativePropertyName,
+                    TestPropertyType = info.NegativePropertyType,
+                    TestPropertyValue = info.NegativePropertyValue,
+                    APIResponse = $"Exception occurred while API call: {e.Message}",
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    IsSuccess = false
+                };
+
+                return errorResponseInfo;
             }
         }
 
@@ -56,7 +69,7 @@ namespace APITestingService.Implementation
             try
             {
                 HttpRequestMessage httpRequestMessage = HttpRequestMessageBasedOnMethodType(model.MethodType, model.Headers, model.APIUrl);
-                _logger.LogInformation("HttpApiService.TestApiWithHttpClient - Making API call.");
+                _logger.LogInformation("HttpApiService.CustomTestPostPutApiWithHttpClient - Making API call.");
                 if (info.Value != null)
                 {
                     var requestContent = new StringContent(info.Value, Encoding.UTF8, "application/json");
@@ -73,13 +86,23 @@ namespace APITestingService.Implementation
                     StatusCode = response.StatusCode,
                     IsSuccess = response.IsSuccessStatusCode
                 };
-                _logger.LogInformation("HttpApiService.TestApiWithHttpClient - API call completed.");
+                _logger.LogInformation("HttpApiService.CustomTestPostPutApiWithHttpClient - API call completed.");
                 return responseInfo;
             }
             catch (Exception e)
             {
-                _logger.LogInformation("HttpApiService.TestApiWithHttpClient - API call failed.");
-                throw new InvalidOperationException($"Exception Occurred while making api call : {e.Message}");
+                _logger.LogError($"HttpApiService.CustomTestPostPutApiWithHttpClient - Exception occurred while making api call : {e.Message}");
+
+                var errorResponseInfo = new TestobjectInfo
+                {
+                    TestedObject = info.Value,
+                    TestPropertyName = info.Key,
+                    APIResponse = $"Exception occurred while API call: {e.Message}",
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    IsSuccess = false
+                };
+
+                return errorResponseInfo;
             }
         }
 
@@ -107,26 +130,36 @@ namespace APITestingService.Implementation
             }
             catch (Exception e)
             {
-                _logger.LogInformation("HttpApiService.TestGetDelApiWithHttpClient - API call failed.");
-                throw new InvalidOperationException($"Exception Occurred while making api call : {e.Message}");
+                _logger.LogError($"HttpApiService.TestGetDelApiWithHttpClient - Exception occurred while making api call : {e.Message}");
+
+                var errorResponseInfo = new TestobjectInfo
+                {
+                    TestedObject = info.URL,
+                    TestPropertyName = info.TestPropertyName,
+                    APIResponse = $"Exception occurred while API call: {e.Message}",
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    IsSuccess = false
+                };
+
+                return errorResponseInfo;
             }
         }
         private HttpRequestMessage HttpRequestMessageBasedOnMethodType(string methodType, List<KeyValue> headers, string url)
         {
             HttpRequestMessage httpRequestMessage = null;
-            if (methodType == "Get")
+            if (methodType.ToLower() == "get")
             {
                 httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
             }
-            else if (methodType == "Post")
+            else if (methodType.ToLower() == "post")
             {
                 httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
             }
-            else if (methodType == "Put")
+            else if (methodType.ToLower() == "put")
             {
                 httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url);
             }
-            else if (methodType == "Delete")
+            else if (methodType.ToLower() == "delete")
             {
                 httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
             }

@@ -26,7 +26,7 @@ namespace APITestingService.Implementation
                 List<TestobjectInfo> testObjects = new List<TestobjectInfo>();
                 int successCount = 0;
                 int count = 1;
-                var totalTestObjects = testObjects.Count();
+                var totalTestObjects = generateTestObjects.Count();
                 foreach (var testObject in generateTestObjects)
                 {
                     _logger.LogInformation($"APITestingServices.TestAPI - Looping : Test object number : {count}  Out Of : {totalTestObjects}");

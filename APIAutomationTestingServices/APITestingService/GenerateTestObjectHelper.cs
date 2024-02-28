@@ -124,10 +124,10 @@ public static class GenerateTestObjectHelper
                     {
                         if (propertyIndex == currentIndex)
                         {
-                            if (propInfo.PropertyType == typeof(string) && updatingValue is char charValue)
+                            if (propInfo.PropertyType == typeof(string))
                             {
                                 // Convert char to string
-                                updatingValue = charValue.ToString();
+                                updatingValue = updatingValue?.ToString();
                             }
                             val = updatingValue;
                         }
