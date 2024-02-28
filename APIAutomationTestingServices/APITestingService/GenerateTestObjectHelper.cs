@@ -419,7 +419,7 @@ public static class GenerateTestObjectHelper
         else
         {
             var testValues = TestDataValues.StringValues;
-            return ("string", testValues.Select(value => value.ToString()).ToList());
+            return ("string", testValues.Select(value => value?.ToString()).ToList());
         }
     }
     public static List<GetDelTestInfo> GenerateTestObjectsBasedOnParams(GetDeleteTestingModel testingModel)
