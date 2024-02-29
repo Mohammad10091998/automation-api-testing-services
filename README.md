@@ -1,13 +1,22 @@
 
-# QuickTestEase - API Testing Made Simple and Fast
+# APIAutoTest - API Testing Made Simple and Fast
 
 Powered by .NET Core, our backend ensures lightning-fast API testing and accelerating your development cycle.
+This backend project is hosted on Azure [Swagger UI](https://apiautomationtestingprod.azurewebsites.net/index.html).
 
-# 1. Testing Post/Put APIs
-
+## 1. Testing Post/Put APIs
 The PostPutAPITestingModel class is designed to facilitate the testing of Post/Put APIs within our project. It accepts essential parameters such as API URL, HTTP method type, JSON schema for payload, and headers.
 
-![image](https://github.com/Mohammad10091998/automation-api-testing-services/assets/110900901/0ee66198-3b55-49aa-b755-5e5ae651f03f)
+Post <a href="https://apiautomationtestingprod.azurewebsites.net/api/APITesting/TestPostPut" style="color: lightgrey;">https://apiautomationtestingprod.azurewebsites.net/api/APITesting/TestPostPut</a>
+
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `apiUrl` | `string` | **Required**. Your API URL |
+| `methodType` | `string` | **Required**. Type of Rest API |
+| `jsonSchema` | `string` | **Required**. StringfyJson Schema |
+| `headers` | `key value` |  List of Key Value pairs |
+
 
 ```
 {
@@ -109,7 +118,15 @@ This structured response helps developers quickly identify which scenarios passe
 # 2. Custom Testing Post/Put APIs 
 Our second API allows users to perform custom Post/Put API testing by providing a set of test objects along with their named JSON schemas. This enables users to tailor their testing scenarios according to specific use cases. Here's how to structure the input and interpret the response:
 
-![image](https://github.com/Mohammad10091998/automation-api-testing-services/assets/110900901/318b8343-868d-43cf-8c4b-55841cd262df)
+Post <a href="https://apiautomationtestingprod.azurewebsites.net/api/APITesting/CustomTestPostPut" style="color: lightgrey;">https://apiautomationtestingprod.azurewebsites.net/api/APITesting/CustomTestPostPut</a>
+
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `apiUrl` | `string` | **Required**. Your API URL |
+| `methodType` | `string` | **Required**. Type of Rest API |
+| `jsonSchema` | `string` | **Required**. Key Value : Key is the name of Test Object and Value is the stringfy Json Schema |
+| `headers` | `key value` |  List of Key Value pairs |
 
 Example
 ```
@@ -145,7 +162,15 @@ Response is same as Post/Put Api  Testing
 # 3.Testing Get/Del APIs with Query Parameters
 For testing Get/Del APIs, you can provide query parameters and let our backend algorithm generate various test objects based on the data type of each parameter. Here's how you can structure your request:
 
-![image](https://github.com/Mohammad10091998/automation-api-testing-services/assets/110900901/429d8f69-9f1f-4fb5-b4db-01f1cef9bded)
+Post <a href="https://apiautomationtestingprod.azurewebsites.net/api/APITesting/TestGetDel" style="color: lightgrey;">https://apiautomationtestingprod.azurewebsites.net/api/APITesting/TestGetDel</a>
+
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `apiUrl` | `string` | **Required**. Your API URL |
+| `methodType` | `string` | **Required**. Type of Rest API |
+| `params` | `string` | **Required**. Key Value : Key is the name of Query parameter and Value is the value of that parameter |
+| `headers` | `key value` |  List of Key Value pairs |
 
 ```
 {
@@ -188,7 +213,15 @@ Response is same as Post/Put Api Testing
 # 4.Custom Testing of Get/Delete APIs with Multiple Values
 For custom testing of Get/Delete APIs, users can provide multiple values for each query parameter. Our backend will then test the API using the specified values. Here's how you can structure your request:
 
-![image](https://github.com/Mohammad10091998/automation-api-testing-services/assets/110900901/8da125e7-f83f-4b42-a40c-a5c85272f848)
+Post <a href="https://apiautomationtestingprod.azurewebsites.net/api/APITesting/CustomTestGetDel" style="color: lightgrey;">https://apiautomationtestingprod.azurewebsites.net/api/APITesting/CustomTestGetDel</a>
+ 
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `apiUrl` | `string` | **Required**. Your API URL |
+| `methodType` | `string` | **Required**. Type of Rest API |
+| `params` | `string` | **Required**. Key Value : Key is the name of Query parameter and Values is the list of values of that parameter |
+| `headers` | `key value` |  List of Key Value pairs |
 
 ```
 {
