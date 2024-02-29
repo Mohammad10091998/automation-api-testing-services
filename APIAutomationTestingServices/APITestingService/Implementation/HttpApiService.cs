@@ -55,7 +55,7 @@ namespace APITestingService.Implementation
                     TestPropertyName = info.NegativePropertyName,
                     TestPropertyType = info.NegativePropertyType,
                     TestPropertyValue = info.NegativePropertyValue,
-                    APIResponse = $"Exception occurred while API call: {e.Message}",
+                    APIResponse = $"Exception occurred while making API call: {e.Message}",
                     StatusCode = HttpStatusCode.InternalServerError,
                     IsSuccess = false
                 };
@@ -97,7 +97,7 @@ namespace APITestingService.Implementation
                 {
                     TestedObject = info.Value,
                     TestPropertyName = info.Key,
-                    APIResponse = $"Exception occurred while API call: {e.Message}",
+                    APIResponse = $"Exception occurred while making API call: {e.Message}",
                     StatusCode = HttpStatusCode.InternalServerError,
                     IsSuccess = false
                 };
@@ -136,7 +136,7 @@ namespace APITestingService.Implementation
                 {
                     TestedObject = info.URL,
                     TestPropertyName = info.TestPropertyName,
-                    APIResponse = $"Exception occurred while API call: {e.Message}",
+                    APIResponse = $"Exception occurred while making API call: {e.Message}",
                     StatusCode = HttpStatusCode.InternalServerError,
                     IsSuccess = false
                 };
